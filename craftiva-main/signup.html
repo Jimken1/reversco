@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Signup Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Flip setup */
+    .flip-card { perspective: 1200px; }
+    .flip-inner { transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
+    .flip-front, .flip-back {
+      backface-visibility: hidden;
+      position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+    }
+    .flip-back { transform: rotateY(180deg); }
+
+    /* Mobile-only flip card */
+    @media (max-width: 767px) {
+  .flip-card {
+    margin: 2rem auto;   /* centers horizontally */
+    width: 100%; height: 100%;
+    position: relative;  /* no absolute */
+  }
+      .flip-front, .flip-back {
+        border-radius: 12px;
+        backdrop-filter: blur(20px);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 24px;
+        color: #e5e5e5;
+      }
+    }
+
+    /* Desktop flip card */
+    @media (min-width: 768px) {
+      .flip-card { width: 100%; max-width: 400px; height: 500px; }
+      .flip-front, .flip-back {
+        background: white; color: black;
+        border-radius: 12px; padding: 32px;
+      }
+    }
+
+    /* Toggle buttons (mobile only) */
+    .toggle-btn {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .toggle-btn {
+        display: flex;
+        justify-content: space-between;
+        width: 90%; max-width: 360px;
+        margin: 20px auto 0;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        background: rgba(0,0,0,0.5);
+        overflow: hidden;
+      }
+      .toggle-btn button {
+        flex: 1; padding: 12px; font-size: 14px;
+        font-weight: 500; color: #e5e5e5;
+        transition: all 0.3s ease;
+      }
+      .toggle-btn button.active {
+        font-weight: 700; color: #fff;
+        background: rgba(255,255,255,0.15);
+      }
+    }
+    .flip-card {
+      height: 100%;
+      width: 100%
+}
+
+
+    /* Background video */
+    #bgVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+  </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row bg-white overflow-hidden">
+
+  <!-- Mobile background video -->
+  <video autoplay muted loop playsinline id="bgVideo" class="block md:hidden">
+    <source src="signvid.mp4" type="video/mp4">
+  </video>
+  <div class="absolute inset-0 bg-black/40 md:hidden -z-10"></div>
+
+  <!-- Desktop left panel -->
+  <div class="hidden md:flex relative w-1/2 text-white justify-center items-center p-10 overflow-hidden">
+    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover filter blur-[1px] -z-10">
+      <source src="signvid.mp4" type="video/mp4">
+    </video>
+    <div class="relative z-10 text-center bg-black/40 p-6 rounded-lg">
+      <h1 id="heroTitle" class="text-4xl font-bold mb-4 text-white">Become an Apprentice</h1>
+      <p id="heroDesc" class="text-lg text-gray-200 max-w-xl mx-auto mb-6">
+        Learn, grow, and gain hands-on experience under the guidance of experts in the community.
+      </p>
+      <div class="flex items-center my-6">
+        <span class="flex-grow h-px bg-gradient-to-r from-gray-400 to-transparent"></span>
+        <span class="px-3 text-gray-500 font-medium">OR</span>
+        <span class="flex-grow h-px bg-gradient-to-l from-gray-400 to-transparent"></span>
+      </div>
+      <button id="flipBtnDesktop" onclick="flipCardDesktop()" class="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md hover:scale-105 transition-transform">
+        Sign up as Member
+      </button>
+    </div>
+  </div>
+
+  <!-- Right panel (desktop) / center card (mobile) -->
+<div class="block md:flex h-full w-full md:w-1/2 justify-center items-center p-5 md:p-10 relative min-h-screen md:min-h-0">
+
+    <!-- Toggle buttons (mobile only) -->
+    <div class="toggle-btn md:hidden">
+      <button id="apprenticeBtn">Apprentice</button>
+      <button id="memberBtn">Member</button>
+    </div>
+
+    <!-- Flip Card -->
+    <div id="flipCard" class="flip-card">
+      <div id="flipInner" class="flip-inner">
+
+        <!-- Apprentice -->
+        <div class="flip-front">
+          <h2 class="text-xl md:text-2xl font-semibold mb-4">Sign up as <span class="text-[#157bff]">Apprentice</span></h2>
+          <p class="mb-4 text-gray-300 md:text-gray-500">Learn, grow, and connect with professionals.</p>
+          <div class="space-y-3 md:space-y-4">
+            <button class="w-full flex items-center justify-center border rounded-md py-2 hover:bg-gray-100 md:hover:bg-gray-100 hover:bg-gray-700 border-gray-500 md:border-gray-300">
+              <img src="https://www.svgrepo.com/show/355037/google.svg" class="w-5 mr-2"> Continue with Google
+            </button>
+            <button class="w-full flex items-center justify-center border rounded-md py-2 hover:bg-gray-100 md:hover:bg-gray-100 hover:bg-gray-700 border-gray-500 md:border-gray-300">
+              <img src="https://www.svgrepo.com/download/452213/gmail.svg" class="w-5 mr-2"> Continue with Email
+            </button>
+          </div>
+          <form class="mt-4 md:mt-6 space-y-3 md:space-y-4">
+            <input type="text" placeholder="Full Name" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <input type="text" placeholder="Skill" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <input type="email" placeholder="Email" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <input type="password" placeholder="Password" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md">Create Apprentice Account</button>
+          </form>
+            <div class="mt-4 text-center">
+                  <a href="Sign-in.html" 
+                    class="inline-block w-full bg-gray-700 md:bg-gray-200 text-white md:text-black py-2 rounded-md hover:opacity-90 transition">
+                    Already have an account? Sign In
+                  </a>
+          </div>
+        </div>
+
+        <!-- Member -->
+        <div class="flip-back">
+          <h2 class="text-xl md:text-2xl font-semibold mb-4">Sign up as <span class="text-[#157bff]">Member</span></h2>
+          <p class="mb-4 text-gray-300 md:text-gray-500">Join the network of professionals.</p>
+            <div class="space-y-3 md:space-y-4 mb-5">
+                <button class="w-full flex items-center justify-center border rounded-md py-2 hover:bg-gray-100 md:hover:bg-gray-100 hover:bg-gray-700 border-gray-500 md:border-gray-300">
+                <img src="https://www.svgrepo.com/show/355037/google.svg" class="w-5 mr-2"> Continue with Google
+                </button>
+                <button class="w-full flex items-center justify-center border rounded-md py-2 hover:bg-gray-100 md:hover:bg-gray-100 hover:bg-gray-700 border-gray-500 md:border-gray-300">
+                <img src="https://www.svgrepo.com/download/452213/gmail.svg" class="w-5 mr-2"> Continue with Email
+                </button>
+            </div>
+          <form class="space-y-3 md:space-y-4">
+            <input type="text" placeholder="Business/Brand Name" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <input type="email" placeholder="Email" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <input type="password" placeholder="Password" class="w-full border rounded-md p-2 bg-transparent md:bg-white text-white md:text-black placeholder-gray-300 md:placeholder-gray-500 border-gray-500 md:border-gray-300">
+            <button type="submit" class="w-full bg-[#157bff] text-white py-2 rounded-md">Create Member Account</button>
+          </form>
+            <div class="mt-4 text-center">
+                  <a href="Sign-in.html" 
+                    class="inline-block w-full bg-gray-700 md:bg-gray-200 text-white md:text-black py-2 rounded-md hover:opacity-90 transition">
+                    Already have an account? Sign In
+                  </a>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isMemberDesktop = true;
+
+    // Desktop flip logic
+    function flipCardDesktop() {
+      const card = document.getElementById('flipInner');
+      const flipBtn = document.getElementById('flipBtnDesktop');
+      const titleEl = document.getElementById('heroTitle');
+      const descEl  = document.getElementById('heroDesc');
+
+      gsap.to(card, {
+        rotateY: isMemberDesktop ? 180 : 0,
+        duration: 1,
+        ease: "power2.inOut",
+        onComplete: () => {
+          if (isMemberDesktop) {    
+            titleEl.textContent = "Become a Member";
+            descEl.textContent  = "Join our community to access exclusive benefits, connect with others, and unlock new opportunities tailored just for you.";
+            flipBtn.textContent = "Sign up as Apprentice";
+          } else {
+            titleEl.textContent = "Become an Apprentice";
+            descEl.textContent  = "Learn, grow, and gain hands-on experience under the guidance of experts in the community.";
+            flipBtn.textContent = "Sign up as Member";
+          }
+          isMemberDesktop = !isMemberDesktop;
+        }
+      });
+    }
+
+    // Mobile toggle logic
+    const flipInner = document.getElementById('flipInner');
+    const apprenticeBtn = document.getElementById('apprenticeBtn');
+    const memberBtn = document.getElementById('memberBtn');
+
+    function setApprenticeState(){
+      gsap.to(flipInner, {rotateY: 0, duration: 1, ease: "power4.inOut"});
+      apprenticeBtn?.classList.add('active');
+      memberBtn?.classList.remove('active');
+    }
+    function setMemberState(){
+      gsap.to(flipInner, {rotateY: 180, duration: 1, ease: "power4.inOut"});
+      memberBtn?.classList.add('active');
+      apprenticeBtn?.classList.remove('active');
+    }
+    apprenticeBtn?.addEventListener('load', {setApprenticeState})
+    apprenticeBtn?.addEventListener('click', setApprenticeState);
+    memberBtn?.addEventListener('click', setMemberState);
+
+    // Animations
+    gsap.from("#flipCard", {scale: 0.8, opacity: 0, duration: 1, delay: 0.3, ease: "elastic.out(1,0.5)"});
+    gsap.from(".toggle-btn button", {y: -50, opacity: 0, duration: 0.8, stagger: 0.2, ease: "back.out(1.7)"});
+  </script>
+</body>
+</html>
