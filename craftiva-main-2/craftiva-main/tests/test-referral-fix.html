@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Test Referral Fix</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100 p-8">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Referral System Fix Test</h1>
+
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 class="text-xl font-bold mb-4">
+                    Test Referral Code Generation
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2"
+                            >User ID:</label
+                        >
+                        <input
+                            type="text"
+                            id="test-user-id"
+                            placeholder="Enter user ID"
+                            class="w-full px-3 py-2 border rounded-lg"
+                        />
+                    </div>
+                    <button
+                        onclick="testReferralCode()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                    >
+                        Test Referral Code Generation
+                    </button>
+                    <div
+                        id="test-result"
+                        class="text-sm p-4 bg-gray-50 rounded-lg"
+                    ></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Console Log</h2>
+                <div
+                    id="console-log"
+                    class="text-xs font-mono bg-black text-green-400 p-4 rounded-lg h-64 overflow-y-auto"
+                ></div>
+            </div>
+        </div>
+
+        <script type="module">
+            import {
+                generateReferralCode,
+                getUserReferralCode,
+                getUserReferralStats,
+            } from "./supabase-auth.js";
+
+            // Override console.log to capture output
+            const originalLog = console.log;
+            const originalError = console.error;
+            const consoleLog = document.getElementById("console-log");
+
+            console.log = function (...args) {
+                originalLog.apply(console, args);
+                consoleLog.innerHTML +=
+                    '<div class="text-green-400">' + args.join(" ") + "</div>";
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            };
+
+            console.error = function (...args) {
+                originalError.apply(console, args);
+                consoleLog.innerHTML +=
+                    '<div class="text-red-400">' + args.join(" ") + "</div>";
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            };
+
+            window.testReferralCode = async function () {
+                const userId = document.getElementById("test-user-id").value;
+                const resultDiv = document.getElementById("test-result");
+
+                if (!userId) {
+                    resultDiv.innerHTML =
+                        '<div class="text-red-600">Please enter a user ID</div>';
+                    return;
+                }
+
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Testing referral code generation...</div>';
+
+                try {
+                    console.log(
+                        "Testing referral code generation for user:",
+                        userId
+                    );
+
+                    // Test generateReferralCode
+                    const code = await generateReferralCode(userId);
+                    console.log("Generated referral code:", code);
+
+                    // Test getUserReferralCode
+                    const userCode = await getUserReferralCode(userId);
+                    console.log("User referral code data:", userCode);
+
+                    // Test getUserReferralStats
+                    const stats = await getUserReferralStats(userId);
+                    console.log("User referral stats:", stats);
+
+                    resultDiv.innerHTML = `
+                    <div class="text-green-600">
+                        <p><strong>Success!</strong> Referral system is working.</p>
+                        <p>Generated Code: ${code}</p>
+                        <p>User Code: ${userCode.code || "None"}</p>
+                        <p>Total Referrals: ${userCode.total_referrals || 0}</p>
+                        <p>Referral Stats Count: ${stats.length}</p>
+                    </div>
+                `;
+                } catch (error) {
+                    console.error("Test failed:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Check console for details.</p>
+                    </div>
+                `;
+                }
+            };
+
+            console.log("Referral fix test page loaded");
+        </script>
+    </body>
+</html>
+
+
+
+

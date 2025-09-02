@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Simple Database Test</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100 p-8">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Simple Database Test</h1>
+
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 class="text-xl font-bold mb-4">Test Database Connection</h2>
+                <button
+                    onclick="testConnection()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-4"
+                >
+                    Test Connection
+                </button>
+                <div
+                    id="connection-result"
+                    class="text-sm p-4 bg-gray-50 rounded-lg"
+                ></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 class="text-xl font-bold mb-4">Test Tables</h2>
+                <button
+                    onclick="testTables()"
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 mb-4"
+                >
+                    Test Tables
+                </button>
+                <div
+                    id="tables-result"
+                    class="text-sm p-4 bg-gray-50 rounded-lg"
+                ></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-4">Console Log</h2>
+                <div
+                    id="console-log"
+                    class="text-xs font-mono bg-black text-green-400 p-4 rounded-lg h-64 overflow-y-auto"
+                ></div>
+            </div>
+        </div>
+
+        <script type="module">
+            import { supabase } from "./supabase-auth.js";
+
+            // Override console.log to capture output
+            const originalLog = console.log;
+            const originalError = console.error;
+            const consoleLog = document.getElementById("console-log");
+
+            console.log = function (...args) {
+                originalLog.apply(console, args);
+                consoleLog.innerHTML +=
+                    '<div class="text-green-400">' + args.join(" ") + "</div>";
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            };
+
+            console.error = function (...args) {
+                originalError.apply(console, args);
+                consoleLog.innerHTML +=
+                    '<div class="text-red-400">' + args.join(" ") + "</div>";
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            };
+
+            window.testConnection = async function () {
+                const resultDiv = document.getElementById("connection-result");
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Testing connection...</div>';
+
+                try {
+                    console.log("Testing Supabase connection...");
+
+                    // Test basic connection by trying to get the current user
+                    const {
+                        data: { user },
+                        error,
+                    } = await supabase.auth.getUser();
+
+                    if (error) {
+                        console.error("Connection error:", error);
+                        resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            <p><strong>Connection Error:</strong></p>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                    } else {
+                        console.log("Connection successful");
+                        resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <p><strong>Connection Successful!</strong></p>
+                            <p>User: ${
+                                user ? user.email : "Not authenticated"
+                            }</p>
+                        </div>
+                    `;
+                    }
+                } catch (error) {
+                    console.error("Unexpected error:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Unexpected Error:</strong></p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                }
+            };
+
+            window.testTables = async function () {
+                const resultDiv = document.getElementById("tables-result");
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Testing tables...</div>';
+
+                try {
+                    console.log("Testing database tables...");
+
+                    // Test profiles table
+                    const { data: profiles, error: profilesError } =
+                        await supabase
+                            .from("profiles")
+                            .select("count")
+                            .limit(1);
+
+                    console.log("Profiles table test:", {
+                        data: profiles,
+                        error: profilesError,
+                    });
+
+                    // Test referral_codes table
+                    const { data: codes, error: codesError } = await supabase
+                        .from("referral_codes")
+                        .select("count")
+                        .limit(1);
+
+                    console.log("Referral codes table test:", {
+                        data: codes,
+                        error: codesError,
+                    });
+
+                    // Test referrals table
+                    const { data: referrals, error: referralsError } =
+                        await supabase
+                            .from("referrals")
+                            .select("count")
+                            .limit(1);
+
+                    console.log("Referrals table test:", {
+                        data: referrals,
+                        error: referralsError,
+                    });
+
+                    let result = '<div class="space-y-2">';
+
+                    if (profilesError) {
+                        result += `<div class="text-red-600">Profiles table error: ${profilesError.message}</div>`;
+                    } else {
+                        result += `<div class="text-green-600">Profiles table: OK</div>`;
+                    }
+
+                    if (codesError) {
+                        result += `<div class="text-red-600">Referral codes table error: ${codesError.message}</div>`;
+                    } else {
+                        result += `<div class="text-green-600">Referral codes table: OK</div>`;
+                    }
+
+                    if (referralsError) {
+                        result += `<div class="text-red-600">Referrals table error: ${referralsError.message}</div>`;
+                    } else {
+                        result += `<div class="text-green-600">Referrals table: OK</div>`;
+                    }
+
+                    result += "</div>";
+                    resultDiv.innerHTML = result;
+                } catch (error) {
+                    console.error("Tables test error:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Tables Test Error:</strong></p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                }
+            };
+
+            console.log("Simple test page loaded");
+        </script>
+    </body>
+</html>
+
+
+
+

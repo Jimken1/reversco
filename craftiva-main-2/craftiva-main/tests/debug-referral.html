@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Debug Referral System</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-100 p-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Debug Referral System</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Test RPC Function -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Test RPC Function</h2>
+                    <button
+                        onclick="testRPC()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-4"
+                    >
+                        Test generate_referral_code RPC
+                    </button>
+                    <div
+                        id="rpc-result"
+                        class="text-sm p-4 bg-gray-50 rounded-lg"
+                    ></div>
+                </div>
+
+                <!-- Test Database Tables -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Test Database Tables</h2>
+                    <button
+                        onclick="testTables()"
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 mb-4"
+                    >
+                        Test Database Access
+                    </button>
+                    <div
+                        id="table-result"
+                        class="text-sm p-4 bg-gray-50 rounded-lg"
+                    ></div>
+                </div>
+
+                <!-- Test Full Referral Flow -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">
+                        Test Full Referral Flow
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2"
+                                >User ID:</label
+                            >
+                            <input
+                                type="text"
+                                id="test-user-id"
+                                placeholder="Enter user ID"
+                                class="w-full px-3 py-2 border rounded-lg"
+                            />
+                        </div>
+                        <button
+                            onclick="testFullFlow()"
+                            class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                        >
+                            Test Full Flow
+                        </button>
+                        <div
+                            id="flow-result"
+                            class="text-sm p-4 bg-gray-50 rounded-lg"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- Check Authentication -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Check Authentication</h2>
+                    <button
+                        onclick="checkAuth()"
+                        class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 mb-4"
+                    >
+                        Check Auth Status
+                    </button>
+                    <div
+                        id="auth-result"
+                        class="text-sm p-4 bg-gray-50 rounded-lg"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- Console Log -->
+            <div class="bg-white p-6 rounded-lg shadow mt-6">
+                <h2 class="text-xl font-bold mb-4">Console Log</h2>
+                <div
+                    id="console-log"
+                    class="text-xs font-mono bg-black text-green-400 p-4 rounded-lg h-64 overflow-y-auto"
+                ></div>
+            </div>
+        </div>
+
+        <script type="module">
+            import {
+                supabase,
+                generateReferralCode,
+                getUserReferralCode,
+                getUserReferralStats,
+            } from "./supabase-auth.js";
+
+            // Override console.log to capture output
+            const originalLog = console.log;
+            const originalError = console.error;
+            const consoleLog = document.getElementById("console-log");
+
+            console.log = function (...args) {
+                originalLog.apply(console, args);
+                consoleLog.innerHTML +=
+                    '<div class="text-green-400">' + args.join(" ") + "</div>";
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            };
+
+            console.error = function (...args) {
+                originalError.apply(console, args);
+                consoleLog.innerHTML +=
+                    '<div class="text-red-400">' + args.join(" ") + "</div>";
+                consoleLog.scrollTop = consoleLog.scrollHeight;
+            };
+
+            // Test RPC function
+            window.testRPC = async function () {
+                const resultDiv = document.getElementById("rpc-result");
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Testing RPC function...</div>';
+
+                try {
+                    console.log(
+                        "Testing generate_referral_code RPC function..."
+                    );
+                    const { data, error } = await supabase.rpc(
+                        "generate_referral_code"
+                    );
+
+                    if (error) {
+                        console.error("RPC Error:", error);
+                        resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            <p><strong>RPC Error:</strong></p>
+                            <p>Code: ${error.code}</p>
+                            <p>Message: ${error.message}</p>
+                            <p>Details: ${error.details}</p>
+                        </div>
+                    `;
+                    } else {
+                        console.log("RPC Success:", data);
+                        resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <p><strong>RPC Success!</strong></p>
+                            <p>Generated Code: ${data}</p>
+                        </div>
+                    `;
+                    }
+                } catch (error) {
+                    console.error("Unexpected error:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Unexpected Error:</strong></p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                }
+            };
+
+            // Test database tables
+            window.testTables = async function () {
+                const resultDiv = document.getElementById("table-result");
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Testing database access...</div>';
+
+                try {
+                    console.log("Testing database table access...");
+
+                    // Test referral_codes table
+                    const { data: codes, error: codesError } = await supabase
+                        .from("referral_codes")
+                        .select("count")
+                        .limit(1);
+
+                    console.log("Referral codes table test:", {
+                        data: codes,
+                        error: codesError,
+                    });
+
+                    // Test referrals table
+                    const { data: referrals, error: referralsError } =
+                        await supabase
+                            .from("referrals")
+                            .select("count")
+                            .limit(1);
+
+                    console.log("Referrals table test:", {
+                        data: referrals,
+                        error: referralsError,
+                    });
+
+                    let result = '<div class="space-y-2">';
+
+                    if (codesError) {
+                        result += `<div class="text-red-600">Referral codes table error: ${codesError.message}</div>`;
+                    } else {
+                        result += `<div class="text-green-600">Referral codes table: OK</div>`;
+                    }
+
+                    if (referralsError) {
+                        result += `<div class="text-red-600">Referrals table error: ${referralsError.message}</div>`;
+                    } else {
+                        result += `<div class="text-green-600">Referrals table: OK</div>`;
+                    }
+
+                    result += "</div>";
+                    resultDiv.innerHTML = result;
+                } catch (error) {
+                    console.error("Database test error:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Database Test Error:</strong></p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                }
+            };
+
+            // Test full referral flow
+            window.testFullFlow = async function () {
+                const userId = document.getElementById("test-user-id").value;
+                const resultDiv = document.getElementById("flow-result");
+
+                if (!userId) {
+                    resultDiv.innerHTML =
+                        '<div class="text-red-600">Please enter a user ID</div>';
+                    return;
+                }
+
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Testing full referral flow...</div>';
+
+                try {
+                    console.log("Testing full referral flow for user:", userId);
+
+                    // Step 1: Generate referral code
+                    console.log("Step 1: Generating referral code...");
+                    const code = await generateReferralCode(userId);
+                    console.log("Generated code:", code);
+
+                    // Step 2: Get user referral code
+                    console.log("Step 2: Getting user referral code...");
+                    const userCode = await getUserReferralCode(userId);
+                    console.log("User code data:", userCode);
+
+                    // Step 3: Get referral stats
+                    console.log("Step 3: Getting referral stats...");
+                    const stats = await getUserReferralStats(userId);
+                    console.log("Referral stats:", stats);
+
+                    resultDiv.innerHTML = `
+                    <div class="text-green-600 space-y-2">
+                        <p><strong>Full Flow Success!</strong></p>
+                        <p>Generated Code: ${code}</p>
+                        <p>User Code: ${userCode.code || "None"}</p>
+                        <p>Total Referrals: ${userCode.total_referrals || 0}</p>
+                        <p>Stats Count: ${stats.length}</p>
+                    </div>
+                `;
+                } catch (error) {
+                    console.error("Full flow test failed:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Full Flow Error:</strong></p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                }
+            };
+
+            // Check authentication
+            window.checkAuth = async function () {
+                const resultDiv = document.getElementById("auth-result");
+                resultDiv.innerHTML =
+                    '<div class="text-blue-600">Checking authentication...</div>';
+
+                try {
+                    console.log("Checking authentication status...");
+                    const {
+                        data: { user },
+                        error,
+                    } = await supabase.auth.getUser();
+
+                    if (error) {
+                        console.error("Auth error:", error);
+                        resultDiv.innerHTML = `
+                        <div class="text-red-600">
+                            <p><strong>Auth Error:</strong></p>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                    } else if (user) {
+                        console.log("User authenticated:", user);
+                        resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <p><strong>Authenticated!</strong></p>
+                            <p>User ID: ${user.id}</p>
+                            <p>Email: ${user.email}</p>
+                        </div>
+                    `;
+                    } else {
+                        console.log("No user authenticated");
+                        resultDiv.innerHTML = `
+                        <div class="text-yellow-600">
+                            <p><strong>Not Authenticated</strong></p>
+                            <p>No user is currently logged in.</p>
+                        </div>
+                    `;
+                    }
+                } catch (error) {
+                    console.error("Auth check error:", error);
+                    resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <p><strong>Auth Check Error:</strong></p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                }
+            };
+
+            console.log("Debug page loaded");
+        </script>
+    </body>
+</html>
+
+
+
+
